@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}
+Register
+{% endblock %}
+{% block content %}
+{% if not request.user.is_authenticated %}
+
+{% comment %} <div class="container flex align-center">
+    <div class="container text-start"> {% endcomment %}
+    {% comment %} <h2>REGISTER</h2> {% endcomment %}
+
+{% else %}
+<h2>You don't have the Permission to access this PAGE</h2>
+{% endif %}
+<div class="card">
+  <div class="card-body text-start">
+    <h5 class="card-title">REGESTER</h5>
+    <form action="{% url 'register' %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success"> Register </button>
+    </form>
+  </div>
+</div>
+{% comment %} </div>
+</div> {% endcomment %}
+{% endblock  %}
