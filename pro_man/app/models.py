@@ -12,7 +12,7 @@ class User(AbstractUser):
         (ADMIN,'Admin'),
         (MANAGER,'Manager'),
         (MEMBER,'Member'),
-        (VIEWER,'Viewer')
+        (VIEWER,'Viewer'),
     )
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100)
@@ -30,3 +30,54 @@ class User(AbstractUser):
     def __str__(self):
         return self.username    
     
+class Project(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    created_by  = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name='project_builder')
+    member = models.ManyToManyField(User,related_name='member_of_proj')
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+    
+class Task(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    created_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name='task_builder')
+    assigned_to = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name = 'assigned_task')
+    project = models.ForeignKey(Project,on_delete=models.CASCADE,null=True,blank=True,related_name='project_task')
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+    
+class TaskStatus(models.Model):
+    TO_DO = 'To do'
+    IN_PROGRESS = 'In progress'
+    DONE = 'Done'
+
+    CHOICES = (
+        (TO_DO,'To do'),
+        (IN_PROGRESS,'In progress'),
+        (DONE , 'Done'),
+    )    
+    project = models.ForeignKey(Project,on_delete=models.CASCADE)
+    task = models.OneToOneField(Task,on_delete=models.CASCADE)
+    status = models.CharField(max_length=100,choices=CHOICES)
+
+    def __str__(self):
+        return f"{self.project}-{self.task}"
+    
+class Comment(models.Model):
+    text = models.TextField()
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='com_user')
+    project = models.ForeignKey(Project,on_delete=models.CASCADE,related_name = 'com_pro')
+    task = models.ForeignKey(Task,on_delete = models.CASCADE,related_name='com_task')
+
+    def __str__(self):
+        return f"{self.task}-{self.pk}"
+    
+
+

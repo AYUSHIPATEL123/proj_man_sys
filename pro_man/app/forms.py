@@ -1,13 +1,12 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User
+# from .models import User
 class RegisterForm(forms.ModelForm):
     password2 = forms.CharField(label='confirm password',widget=forms.PasswordInput())
     password = forms.CharField(label='password',widget=forms.PasswordInput())
     class Meta:
-        model = User
+        # model = User
         fields = ['email','full_name','username','phone','role','password','password2']
-
         def validate(self):
             if not self.cleaned_data['email'].endswith('@gmil.com'):
                 raise forms.ValidationError('email must end with @gmil.com')
