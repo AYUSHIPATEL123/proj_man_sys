@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-# Create your models here.
+
 
 class User(AbstractUser):
     ADMIN = 'admin'
@@ -62,7 +62,8 @@ class TaskStatus(models.Model):
         (TO_DO,'To do'),
         (IN_PROGRESS,'In progress'),
         (DONE , 'Done'),
-    )    
+    )
+    
     project = models.ForeignKey(Project,on_delete=models.CASCADE)
     task = models.OneToOneField(Task,on_delete=models.CASCADE)
     status = models.CharField(max_length=100,choices=CHOICES)

@@ -45,8 +45,8 @@ STATIC_DIR = [
     BASE_DIR / 'static'
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# LOGIN_REDIRECT_URL = "/app/home/"
-# LOGOUT_REDIRECT_URL = "/app/login/"
+LOGIN_REDIRECT_URL = "/app/home/"
+LOGOUT_REDIRECT_URL = "/app/login/"
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -58,7 +58,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pro_man.urls'
-# AUTH_USER_MODEL = 'app.User'
+AUTH_USER_MODEL = 'app.User'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
