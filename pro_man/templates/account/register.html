@@ -4,15 +4,6 @@ Register
 {% endblock %}
 {% block content %}
 {% if not request.user.is_authenticated %}
-
-<div class="container flex align-center">
-    <div class="container text-start">
-    <h2>REGISTER</h2>
-
-{% else %}
-<h2>You don't have the Permission to access this PAGE</h2>
-{% endif %}
-<br>
 <br>
 <br>
 <div class="container d-flex justify-content-center">
@@ -28,5 +19,8 @@ Register
 </div>
 </div>
 </div>
- </div>
+{% else %}
+<h2>You don't have the Permission to access this PAGE</h2>
+{% endif %}
+</div>
 </div> {% endblock  %}
