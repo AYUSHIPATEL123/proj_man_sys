@@ -1,1 +1,2 @@
-# proj_man_sys
+# proj_man_system
+A project management system

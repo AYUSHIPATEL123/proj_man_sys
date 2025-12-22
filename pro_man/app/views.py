@@ -49,13 +49,14 @@ def log_out(request):
     logout(request)
     return redirect('home')
 
+
 class ProjectListView(ListView):
     model = Project
     template_name = 'project/project_list.html'
     context_object_name = 'projects'
 
    
-    
+
 class TaskListView(ListView):
     model = Task
     template_name = 'project/task_list.html'

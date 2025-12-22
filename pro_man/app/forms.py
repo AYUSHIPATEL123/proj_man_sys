@@ -8,6 +8,7 @@ class RegisterForm(forms.ModelForm):
         model = User
         fields = ['email','full_name','username','phone','role','password','password2']
     
+    
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
@@ -20,6 +21,8 @@ class RegisterForm(forms.ModelForm):
             raise forms.ValidationError('Please use a valid email provider')
 
         return email
+    
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
