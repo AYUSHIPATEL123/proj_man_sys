@@ -1,0 +1,6 @@
+<form method="POST" action="{% url 'task_delete' task.pk %}">
+    {% csrf_token %}
+    <button type="submit" onclick="return confirm('Are you sure?')">
+        Delete
+    </button>
+</form>

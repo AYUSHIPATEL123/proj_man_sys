@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from guardian.admin import GuardedModelAdmin
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -9,19 +10,19 @@ class UserAdmin(admin.ModelAdmin):
 
 admin.site.register(User,UserAdmin)
 
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(GuardedModelAdmin):
     list_display = ('id','name','created_by','created_at','updated_at')
     list_display_links = ('id','name')
 
 admin.site.register(Project,ProjectAdmin)
 
-class TaskAdmin(admin.ModelAdmin):
+class TaskAdmin(GuardedModelAdmin):
     list_display = ('id','name','project','assigned_to','created_by')
     list_display_links = ('id','name')
 
 admin.site.register(Task,TaskAdmin)
 
-class TaskStatusAdmin(admin.ModelAdmin):
+class TaskStatusAdmin(GuardedModelAdmin):
     list_display = ('id','project','task','status')
     list_display_links = ('id','project')
 

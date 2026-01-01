@@ -1,12 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from django.urls import reverse
 
 class User(AbstractUser):
-    ADMIN = 'admin'
-    MANAGER = 'manager'
-    MEMBER = 'member'
-    VIEWER = 'viewer'
+    ADMIN = 'Admin'
+    MANAGER = 'Manager'
+    MEMBER = 'Member'
+    VIEWER = 'Viewer'
 
     ROLE_CHOICES = (
         (ADMIN,'Admin'),
@@ -40,6 +40,12 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+    class Meta:
+        permissions = {
+            ('view_objects','can view objects'),            
+        }
+    def get_url(self):
+        return reverse('project_detail',kwargs = {'pk':self.pk})
     
 class Task(models.Model):
     name = models.CharField(max_length=100)
@@ -53,6 +59,10 @@ class Task(models.Model):
     def __str__(self):
         return self.name
     
+    def get_url(self):
+        return reverse('task_detail',kwargs = {'pk':self.pk})
+    
+
 class TaskStatus(models.Model):
     TO_DO = 'To do'
     IN_PROGRESS = 'In progress'

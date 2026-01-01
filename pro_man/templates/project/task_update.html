@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}
+project update
+{% endblock %}
+{% block content %}
+<form action="{% url 'task_update' task.pk %}" method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<button type="submit">submit</button>
+</form>
+{% endblock  %}
