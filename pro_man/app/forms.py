@@ -49,5 +49,23 @@ class ProjectCreateForm(forms.ModelForm):
             manager_group = Group.objects.get(name = 'Manager')
 
             self.fields['member'].queryset = User.objects.filter(groups = member_group) 
-            self.fields['created_by'].queryset = User.objects.filter(groups = manager_group)       
-            
+            self.fields['created_by'].queryset = User.objects.filter(groups = manager_group) 
+
+class TaskCreateForm(forms.ModelForm):
+
+    class Meta:
+        model = Task
+        fields = ['name','project','description','assigned_to','created_by']
+
+    def __init__(self,*args,**kwargs):
+        task_instance = kwargs.get('instance',None)
+        super().__init__(*args,**kwargs)
+
+        if task_instance:
+            self.fields['assigned_to'].queryset = User.objects.exclude(id= task_instance.created_by.id)
+        else:
+            member_group = Group.objects.get(name = 'Member')
+            manager_group = Group.objects.get(name = 'Manager')
+
+            self.fields['assigned_to'].queryset = User.objects.filter(groups = member_group)
+            self.fields['created_by'].queryset = User.objects.filter(groups = manager_group)    

@@ -1,22 +1,19 @@
-from django.shortcuts import render,redirect
-from django.http import HttpResponse
-from django.urls import reverse_lazy
-from django.urls import reverse
-from django.contrib.auth.models import Group
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin,LoginRequiredMixin
 from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.models import Group
+from django.shortcuts import render,redirect
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import DeleteView,UpdateView,CreateView
-from django.contrib.auth.models import Group
+from django.http import HttpResponse
+from django.urls import reverse_lazy
+from django.urls import reverse
+from guardian.shortcuts import assign_perm,get_objects_for_user
 from .models import User,Project,Task,Comment
 from .forms import RegisterForm
-from guardian.shortcuts import assign_perm
-from django.core.exceptions import PermissionDenied
-from guardian.shortcuts import get_objects_for_user
-from .forms import ProjectCreateForm
+from .forms import ProjectCreateForm ,TaskCreateForm
 # Create your views here.
 
 
@@ -97,11 +94,15 @@ class ProjectDetailView(PermissionRequiredMixin,DetailView):
     permission_required = ('app.view_project') 
     raise_exception = True   
 
-    def has_permission(self):
-        obj = self.get_object()
-        return self.request.user.has_perm('app.view_obj',obj)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        project = self.get_object()
 
+        context['can_view'] = self.request.user.has_perm('app.view_obj',project)
+        context['can_change'] = self.request.user.has_perm('app.change_obj',project)
+        context['can_delete'] = self.request.user.has_perm('app.delete_obj',project)            
 
+        return context 
 
 class ProjectUpdateView(PermissionRequiredMixin,UpdateView):
     model = Project
@@ -148,7 +149,7 @@ class ProjectCreateView(PermissionRequiredMixin,CreateView):
 
 class ProjectDeleteView(PermissionRequiredMixin,DeleteView):
     model = Project
-    permission_required = ('app.delete_project','member')
+    permission_required = ('app.delete_project')
     template_name = 'project/project_delete.html'
     success_url = 'projects'
 
@@ -162,13 +163,36 @@ class TaskListView(ListView):
     context_object_name = 'tasks' 
     permission_required = ('app.view_task')
 
+    def get_queryset(self):
+        if not self.request.user.is_superuser:
+            return get_objects_for_user(self.request.user,'app.view_task_obj')
+        return super().get_queryset()
+    
 
 class TaskCreateView(PermissionRequiredMixin,CreateView):
     model = Task
-    fields = '__all__'
+    # fields = '__all__'
+    form_class = TaskCreateForm
     permission_required = ('app.add_task')
     template_name = 'project/task_form.html'
     success_url = 'tasks'
+
+    def form_valid(self, form):
+        task = form.save(commit=False)  
+        task.save()
+
+        assign_perm('view_task_obj',task.created_by,task)
+        assign_perm('change_task_obj',task.created_by,task)  
+        assign_perm('delete_task_obj',task.created_by,task)
+
+        assign_perm('view_task_obj',task.assigned_to,task)  
+        assign_perm('change_task_obj',task.assigned_to,task) 
+
+        viewer_group = Group.objects.get(name = 'Viewer')
+        assign_perm('view_task_obj',viewer_group,task)
+
+        return redirect(self.success_url) 
+    
 
 
 class TaskDetailView(PermissionRequiredMixin,DetailView):
@@ -179,24 +203,41 @@ class TaskDetailView(PermissionRequiredMixin,DetailView):
     raise_exception = True
     success_url = 'tasks'  
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        task = self.get_object()
+        
+        context[ 'can_view' ] = self.request.user.has_perm('app.view_task_obj',task)
+        context[ 'can_change' ] = self.request.user.has_perm('app.change_task_obj',task)
+        context[ 'can_delete' ] = self.request.user.has_perm('app.delete_task_obj',task)
+
+        return context
 
 class TaskUpdateView(PermissionRequiredMixin,UpdateView):
     model = Task
     template_name = 'project/task_update.html'
     context_object_name = 'task'
-    fields = ('name','description','assigned_to')
+    fields = ('name','description')
     permission_required = ('app.change_task') 
     raise_exception = True 
 
     def get_success_url(self):
-        return reverse('task_detail',kwargs={'pk':self.object.pk}) 
+        return reverse('task_detail',kwargs={'pk':self.object.pk})
+
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.change_task_obj',obj) 
  
 
 class TaskDeleteView(PermissionRequiredMixin,DeleteView):
-    model = Project
-    permission_required = ('app.delete_task')
+    model = Task
+    permission_required = ('app.delete_task',)
     template_name = 'project/task_delete.html'
     success_url = 'tasks'
+
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.delete_task_obj',obj)
 
 
 class CommentListView(PermissionRequiredMixin,ListView):

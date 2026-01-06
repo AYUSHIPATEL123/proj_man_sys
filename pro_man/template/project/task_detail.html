@@ -4,6 +4,7 @@ project detail page
 {% endblock  %}
 {% block content %}
 
+{% if can_view %}
 <h3>{{task.name}}</h3>
 
 <h4>{{task.created_at}}</h4>
@@ -12,7 +13,16 @@ project detail page
 
 <p>{{task.description}}</p>
 
+{% if can_change %}
 <a href="{% url 'task_update' task.pk %}">task update</a>
+{% endif %}
+
+{% if can_delete %}
 <a href="{% url 'task_delete' task.pk %}">task delete</a>
+{% endif %}
+
+{% else %}
+you do not have the permission to view this page
+{% endif %}
 
 {% endblock %}

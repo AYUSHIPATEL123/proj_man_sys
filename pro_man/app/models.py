@@ -61,6 +61,13 @@ class Task(models.Model):
     def __str__(self):
         return self.name
     
+    class Meta:
+        permissions = {
+            ('view_task_obj','Can View Task Objects'),            
+            ('change_task_obj','Can Change Task Objects'),            
+            ('delete_task_obj','Can Delete Task Objects'),            
+        }
+
     def get_url(self):
         return reverse('task_detail',kwargs = {'pk':self.pk})
     
