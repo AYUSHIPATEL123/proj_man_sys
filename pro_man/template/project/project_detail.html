@@ -4,7 +4,8 @@ project detail page
 {% endblock  %}
 {% block content %}
 
-{% comment %} {% if perm.app.view_project %} {% endcomment %}
+{% if perm.app.view_obj %}
+
 <h3>{{project.name}}</h3>
 
 <h4>{{project.created_at}}</h4>
@@ -12,11 +13,13 @@ project detail page
 <p>{{project.description}}</p>
 
 <a href="{% url 'project_update' project.pk %}">update_project</a>
+
 <a href="{% url 'project_delete' project.pk %}">delete_project</a>
-{% comment %} {% else %}
 
-you do not have the permission to view this page
-{% endif %} {% endcomment %}
+{% else %}
 
+{% comment %} you do not have the permission to view this page {% endcomment %}
+
+{% comment %} {% endif %}  {% endcomment %}
 
 {% endblock %}

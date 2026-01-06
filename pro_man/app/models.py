@@ -42,7 +42,9 @@ class Project(models.Model):
         return self.name
     class Meta:
         permissions = {
-            ('view_objects','can view objects'),            
+            ('view_obj','Can View Objects'),            
+            ('change_obj','Can Change Objects'),            
+            ('delete_obj','Can Delete Objects'),            
         }
     def get_url(self):
         return reverse('project_detail',kwargs = {'pk':self.pk})

@@ -50,9 +50,12 @@ STATIC_URL = '/static/'
 STATIC_DIR = [
     BASE_DIR / 'static'
 ]
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 LOGIN_REDIRECT_URL = "/app/home/"
 LOGOUT_REDIRECT_URL = "/app/login/"
+LOGIN_URL = "/app/login/"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -68,7 +71,7 @@ AUTH_USER_MODEL = 'app.User'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': ['template'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -147,4 +150,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 TIME_ZONE = 'Asia/Kolkata'
+
 USE_TZ = True

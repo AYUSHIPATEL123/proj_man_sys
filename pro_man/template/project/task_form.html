@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}
-project update
+project create
 {% endblock %}
 {% block content %}
-<form action="{% url 'create_project' %}" method="post">
+<form action="{% url 'task_create' %}" method="post">
 {% csrf_token %}
 {{form.as_p}}
 <button type="submit">submit</button>

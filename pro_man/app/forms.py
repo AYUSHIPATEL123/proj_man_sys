@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User
+from django.contrib.auth.models import Group
+from guardian.shortcuts import assign_perm
+from .models import *
 class RegisterForm(forms.ModelForm):
     password2 = forms.CharField(label='confirm password',widget=forms.PasswordInput())
     password = forms.CharField(label='password',widget=forms.PasswordInput())
@@ -21,7 +23,6 @@ class RegisterForm(forms.ModelForm):
             raise forms.ValidationError('Please use a valid email provider')
 
         return email
-    
 
     def clean(self):
         cleaned_data = super().clean()
@@ -31,3 +32,22 @@ class RegisterForm(forms.ModelForm):
             raise forms.ValidationError('password does not match or len of it should be greater than 8')
         return cleaned_data
     
+
+class ProjectCreateForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['name','description','created_by','member']
+
+    def __init__(self,*args,**kwargs):
+        pro_instance = kwargs.get('instance',None)
+        super().__init__(*args,**kwargs)
+
+        if pro_instance:
+            self.fields['member'].queryset = User.objects.exclude(id = pro_instance.created_by.id)
+        else:
+            member_group = Group.objects.get(name = 'Member')
+            manager_group = Group.objects.get(name = 'Manager')
+
+            self.fields['member'].queryset = User.objects.filter(groups = member_group) 
+            self.fields['created_by'].queryset = User.objects.filter(groups = manager_group)       
+            

@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect
+from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.urls import reverse
 from django.contrib.auth.models import Group
@@ -9,12 +10,13 @@ from django.contrib.auth.mixins import PermissionRequiredMixin,LoginRequiredMixi
 from django.contrib.auth import authenticate,login,logout
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import DeleteView,UpdateView,CreateView
+from django.contrib.auth.models import Group
 from .models import User,Project,Task,Comment
 from .forms import RegisterForm
 from guardian.shortcuts import assign_perm
 from django.core.exceptions import PermissionDenied
 from guardian.shortcuts import get_objects_for_user
-
+from .forms import ProjectCreateForm
 # Create your views here.
 
 
@@ -59,8 +61,7 @@ def register(request):
         else:
             messages.error(request,'credencials are not correct')  
     else:
-        form = RegisterForm()
-        
+        form = RegisterForm()        
     return render(request,'account/register.html',{'form':form})                    
 
 
@@ -81,67 +82,25 @@ class ProjectListView(ListView):
     context_object_name = 'projects'
     permission_required = ('app.view_project',)
     raise_exception = True
-    
-    def get_queryset(self):
-        if self.request.user.groups.filter(name='Manager').exists():
-            return Project.objects.all()
-        return Project.objects.filter(created_by=self.request.user) 
-    
-class ProjectCreateView(CreateView):
-    model = Project
-    fields = ['name','descriptioin','member']
-    template_name = 'project/create_project.html'
-    permission_requred = ('app.add_project')
-
-
-    def form_valid(self, form):
-        # Save object first
-        response = super().form_valid(form)
-        project = self.object
-
-        # 1️⃣ Assign permissions to creator
-        assign_perm('app.view_project', self.request.user, project)
-        assign_perm('app.change_project', self.request.user, project)
-        assign_perm('app.delete_project', self.request.user, project)
-
-        # 2️⃣ Assign permissions to a group
-        manager_group = Group.objects.get(name='Manager')
-        assign_perm('app.view_project', manager_group, project)
-        assign_perm('app.change_project', manager_group, project)
-
-        return response   
-class TaskListView(ListView):
-    model = Task
-    template_name = 'project/task_list.html'
-    context_object_name = 'tasks'
 
     def get_queryset(self):
-        if self.request.user.groups.filter(name='Manager').exists():
-            return Task.objects.all()
-        return Task.objects.filter(created_by=self.request.user) 
-    
-
-
-class CommentListView(ListView):
-    model = Comment
-    template_name = 'project/comment_list.html'
-    context_object_name = 'comments'
-
-
+        if not self.request.user.is_superuser:
+            projects  = get_objects_for_user(self.request.user , 'app.view_obj')
+            return projects
+        return super().get_queryset()
+        
+            
 class ProjectDetailView(PermissionRequiredMixin,DetailView):
     model = Project
     template_name = 'project/project_detail.html'
     context_object_name = 'project'
     permission_required = ('app.view_project') 
-    raise_exception = True  
+    raise_exception = True   
 
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.view_obj',obj)
 
-class TaskDetailView(PermissionRequiredMixin,DetailView):
-    model = Task
-    template_name = 'project/task_detail.html'
-    context_object_name = 'task'
-    permission_required = ('app.view_task') 
-    raise_exception = True  
 
 
 class ProjectUpdateView(PermissionRequiredMixin,UpdateView):
@@ -155,32 +114,72 @@ class ProjectUpdateView(PermissionRequiredMixin,UpdateView):
     def get_success_url(self):
         return reverse('project_detail',kwargs={'pk':self.object.pk})
     
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.change_obj',obj)
+    
+
+class ProjectCreateView(PermissionRequiredMixin,CreateView):
+    model = Project
+    # fields = '__all__'
+    form_class = ProjectCreateForm
+    template_name = 'project/project_form.html'
+    permission_required = ('app.add_project',)
+    success_url = reverse_lazy('projects')
+
+    def form_valid(self, form):
+        project = form.save(commit=False)
+        project.save()
+        form.save_m2m()
+
+        assign_perm('view_obj',project.created_by,project)
+        assign_perm('change_obj',project.created_by,project)
+        assign_perm('delete_obj',project.created_by,project)
+
+        for member in project.member.all():
+            assign_perm('change_obj',member,project)
+            assign_perm('view_obj',member,project)
+                                                  
+        viewer_group = Group.objects.get(name='Viewer')
+        assign_perm('view_obj',viewer_group,project)
+        
+        return redirect(self.success_url)
+    
+
 class ProjectDeleteView(PermissionRequiredMixin,DeleteView):
     model = Project
     permission_required = ('app.delete_project','member')
     template_name = 'project/project_delete.html'
     success_url = 'projects'
 
-class ProjectCreateView(LoginRequiredMixin, CreateView):
-    model = Project
-    fields = ['name']
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.delete_obj',obj)
 
-    def form_valid(self, form):
-        # Save object first
-        response = super().form_valid(form)
-        project = self.object
+class TaskListView(ListView):
+    model = Task
+    template_name = 'project/task_list.html'
+    context_object_name = 'tasks' 
+    permission_required = ('app.view_task')
 
-        # 1️⃣ Assign permissions to creator
-        assign_perm('app.view_project', self.request.user, project)
-        assign_perm('app.change_project', self.request.user, project)
-        assign_perm('app.delete_project', self.request.user, project)
 
-        # 2️⃣ Assign permissions to a group
-        manager_group = Group.objects.get(name='Manager')
-        assign_perm('app.view_project', manager_group, project)
-        assign_perm('app.change_project', manager_group, project)
+class TaskCreateView(PermissionRequiredMixin,CreateView):
+    model = Task
+    fields = '__all__'
+    permission_required = ('app.add_task')
+    template_name = 'project/task_form.html'
+    success_url = 'tasks'
 
-        return response  
+
+class TaskDetailView(PermissionRequiredMixin,DetailView):
+    model = Task
+    template_name = 'project/task_detail.html'
+    context_object_name = 'task'
+    permission_required = ('app.view_task') 
+    raise_exception = True
+    success_url = 'tasks'  
+
+
 class TaskUpdateView(PermissionRequiredMixin,UpdateView):
     model = Task
     template_name = 'project/task_update.html'
@@ -192,8 +191,17 @@ class TaskUpdateView(PermissionRequiredMixin,UpdateView):
     def get_success_url(self):
         return reverse('task_detail',kwargs={'pk':self.object.pk}) 
  
+
 class TaskDeleteView(PermissionRequiredMixin,DeleteView):
     model = Project
-    permission_required = ('app.delete_project')
+    permission_required = ('app.delete_task')
     template_name = 'project/task_delete.html'
-    success_url = 'projects'
+    success_url = 'tasks'
+
+
+class CommentListView(PermissionRequiredMixin,ListView):
+    model = Comment
+    template_name = 'project/comment_list.html'
+    permission_required = ['app.view_comment',]
+    context_object_name = 'comments'
+
