@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}
+Task Status Detail
+{% endblock  %}
+
+{% block content %}
+{% if can_view %}
+
+<h3>{{taskstatus.task}}</h3>
+
+<h4>{{taskstatus.project}}</h4>
+
+<p>{{taskstatus.status}}</p>
+
+{% if can_update %}
+<a href="{% url 'taskstatus_update' taskstatus.pk %}">task status update</a>
+{% endif %}
+
+{% if can_delete %}
+<a href="{% url 'taskstatus_delete' taskstatus.pk %}">task status delete</a>
+{% endif %}
+
+{% else %}
+you do not have the permission to view this page
+{% endif %}
+
+{% endblock %}

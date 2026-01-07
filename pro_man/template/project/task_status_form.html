@@ -3,10 +3,7 @@
 project create
 {% endblock %}
 {% block content %}
-
-<h3> Create Project </h3>
-
-<form action="{% url 'project_create' %}" method="post">
+<form action="{% url 'taskstatus_create' %}" method="post">
 {% csrf_token %}
 {{form.as_p}}
 <button type="submit">submit</button>

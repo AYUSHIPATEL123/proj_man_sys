@@ -68,8 +68,9 @@
     <br>
     <br>
     {{ title }}
-    <button type="button" class="btn btn-danger"><a class="text-decoration-none" href="{% url 'projects' %}">Project List</a></button>
+<button type="button" class="btn btn-danger"><a class="text-decoration-none" href="{% url 'projects' %}">Project List</a></button>
 <button type="button" class="btn btn-secondary"><a class="text-decoration-none" href="{% url 'tasks' %}">Task List</a></button>
+<button type="button" class="btn btn-warning"><a class="text-decoration-none" href="{% url 'taskstatus_list' %}">Task Status List</a></button>
 <button type="button" class="btn btn-danger"><a class="text-decoration-none" href="{% url 'comments' %}">Comment List</a></button>
     {% endblock %}
 </main>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}
+Task Status List
+{% endblock  %}
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page Title -->
+  <div class = "d-flex justify-content-between align-items-center mb-4">
+    <h2 class = "fw-bold">Task Status List</h2>
+  </div>
+        <button type="button"><a href="{% url 'taskstatus_create' %}" class="text-decoration-none">create new task status</a></button>
+
+  <!-- Products Grid -->
+  <div class = "row g-4">
+{% for task_status in task_statuses %}
+    <!-- Product Card -->
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="card h-100 shadow-sm">  
+        <div class="card-body d-flex flex-column">
+          <h4 class="card-title"> task : <a href="{% url 'taskstatus_detail' task_status.id %}">{{ task_status.task }}</a> </h4>
+          <div class="mt-auto d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Project : {{task_status.project}} </span>
+          </div>
+          <p class="text-muted small">status : {{task_status.status}}</p>
+        </div>
+      </div>
+    </div>
+{% endfor %}
+  </div>
+</div>
+{% endblock %}

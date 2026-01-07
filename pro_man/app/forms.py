@@ -69,3 +69,12 @@ class TaskCreateForm(forms.ModelForm):
 
             self.fields['assigned_to'].queryset = User.objects.filter(groups = member_group)
             self.fields['created_by'].queryset = User.objects.filter(groups = manager_group)    
+
+
+class TaskStatusCreateForm(forms.ModelForm):
+
+    class Meta:
+        model = TaskStatus
+        fields = ['task','project','status']
+
+    

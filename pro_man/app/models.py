@@ -87,6 +87,13 @@ class TaskStatus(models.Model):
     task = models.OneToOneField(Task,on_delete=models.CASCADE)
     status = models.CharField(max_length=100,choices=CHOICES)
 
+    class Meta:
+        permissions = {
+            ('view_status_obj','Can view status objects'),            
+            ('change_status_obj','Can change status objects'),            
+            ('delete_status_obj','Can delete status objects'),            
+        }
+
     def __str__(self):
         return f"{self.project}-{self.task}"
     

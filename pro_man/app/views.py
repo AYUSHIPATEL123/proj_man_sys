@@ -11,9 +11,9 @@ from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.urls import reverse
 from guardian.shortcuts import assign_perm,get_objects_for_user
-from .models import User,Project,Task,Comment
+from .models import User,Project,Task,Comment,TaskStatus
 from .forms import RegisterForm
-from .forms import ProjectCreateForm ,TaskCreateForm
+from .forms import *
 # Create your views here.
 
 
@@ -245,4 +245,76 @@ class CommentListView(PermissionRequiredMixin,ListView):
     template_name = 'project/comment_list.html'
     permission_required = ['app.view_comment',]
     context_object_name = 'comments'
+
+
+class TaskStatusListView(PermissionRequiredMixin,ListView):
+    model = TaskStatus
+    template_name = 'project/task_status_list.html'
+    permission_required = ['app.view_taskstatus',]
+    context_object_name = 'task_statuses'
+    
+
+class TaskStatusDetailview(PermissionRequiredMixin,DetailView):
+    model = TaskStatus
+    template_name = 'project/task_status_detail.html'
+    permission_required = ['app.view_taskstatus']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        task_status = self.get_object()
+
+        context['can_view'] = self.request.user.has_perm('app.view_status_obj',task_status)
+        context['can_update'] = self.request.user.has_perm('app.change_status_obj',task_status)
+        context['can_delete'] = self.request.user.has_perm('app.delete_status_obj',task_status)
+
+        return context
+
+
+class TaskStatusUpdateView(PermissionRequiredMixin,UpdateView):
+    model = TaskStatus
+    template_name = 'project/task_status_update.html'
+    context_object_name = 'task_status'
+    fields = ['project','task','status']
+    permission_required = ('app.change_taskstatus',)
+    success_url = reverse_lazy('taskstatus_list')
+    
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.change_status_obj', obj)
+
+class TaskStatusDeleteView(PermissionRequiredMixin,DeleteView):
+    model = TaskStatus
+    template_name = 'project/task_status_delete.html'
+    permission_required = ['app.delete_taskstatus',]
+    success_url = reverse_lazy('taskstatus_list')
+
+    def has_permission(self):
+        obj = self.get_object()
+        return self.request.user.has_perm('app.delete_status_obj', obj)
+
+
+class TaskStatusCreateView(PermissionRequiredMixin,CreateView):
+    model   = TaskStatus
+    template_name = 'project/task_status_form.html'
+    permission_required = ['app.add_taskstatus']
+    success_url  = 'taskstatus_list'
+    form_class = TaskStatusCreateForm
+
+    def form_valid(self,form):
+        task_status = form.save(commit=False)
+        task_status.save()
+        
+        viewer_group = Group.objects.get(name = 'Viewer')
+        assign_perm('view_status_obj',viewer_group,task_status)
+
+        member_group = Group.objects.get(name = 'Member')
+        assign_perm('view_status_obj',member_group,task_status)
+        assign_perm('change_status_obj',member_group,task_status)
+
+        manager_group = Group.objects.get(name = 'Manager')
+        assign_perm('view_status_obj',manager_group,task_status)
+        assign_perm('change_status_obj',manager_group,task_status)
+        assign_perm('delete_status_obj',manager_group,task_status)
+
+        return redirect(self.success_url)
 

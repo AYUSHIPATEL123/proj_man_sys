@@ -1,0 +1,13 @@
+
+{% extends "base.html" %}
+{% block title %}
+Delete Project
+{% endblock %}
+{% block content %}
+<form method="POST" action="{% url 'taskstatus_delete' taskstatus.pk %}">
+    {% csrf_token %}
+    <button type="submit" onclick="return confirm('Are you sure?')">
+        Delete
+    </button>
+</form>
+{% endblock %}
